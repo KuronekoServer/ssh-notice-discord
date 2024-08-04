@@ -90,7 +90,7 @@ const sendDiscordNotification = async ({ status, method, username, ip, time }) =
   };
 
   if (status === 'Success' || status === 'Failure') {
-    embed.fields.push({ name: 'Method', value: method, inline: true });
+    embed.fields.push({ name: 'Auth Method', value: method, inline: true });
     embed.color = status === 'Success' ? SUCCESS_COLOR : FAILURE_COLOR;
   } else if (status === 'Disconnected') {
     embed.color = DISCONNECTED_COLOR;
