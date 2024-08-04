@@ -1,0 +1,17 @@
+[Unit]
+Description= SSH Notice
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/ssh-notice-discord
+ExecStart=/use/bin/node /root/ssh-notice-discord/index.js
+ExecStop=/usr/bin/pkill -e node
+Restart=always
+RestartSec=2
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=SSH-Notice
+
+[Install]
+WantedBy=multi-user.target
