@@ -1,6 +1,7 @@
 const fs = require('fs');
 const axios = require('axios');
 const os = require('os');
+const dns = require('dns');
 const { spawn } = require('child_process');
 
 const LOG_FILE = '/var/log/auth.log'; // SSHのログファイル
@@ -40,29 +41,60 @@ const parseLogLine = (line) => {
   return null;
 };
 
+const getReverseDNS = (ip) => {
+  return new Promise((resolve, reject) => {
+    dns.reverse(ip, (err, hostnames) => {
+      if (err || !hostnames.length) {
+        resolve('N/A');
+      } else {
+        resolve(hostnames[0]);
+      }
+    });
+  });
+};
+
+const getISP = async (ip) => {
+  try {
+    const response = await axios.get(`https://ipinfo.io/${ip}/json`);
+    return response.data.org || 'N/A';
+  } catch (error) {
+    console.error('Error fetching ISP information:', error);
+    return 'N/A';
+  }
+};
+
 const sendDiscordNotification = async ({ status, method, username, ip, time }) => {
+  let hostname = 'N/A';
+  let isp = 'N/A';
+  try {
+    hostname = await getReverseDNS(ip);
+    isp = await getISP(ip);
+  } catch (error) {
+    console.error('Error fetching additional information:', error);
+  }
+
   const embed = {
     title: `SSH ${status}`,
     fields: [
       { name: 'Time', value: time, inline: true },
       { name: 'Username', value: username, inline: true },
       { name: 'Hostname', value: HOSTNAME, inline: true },
+      { name: 'IP', value: ip, inline: true },
+      { name: 'Hostname (Reverse DNS)', value: hostname, inline: true },
+      { name: 'ISP', value: isp, inline: true },
     ],
+    footer: {
+      text: FOOTER_TEXT,
+      icon_url: FOOTER_ICON_URL,
+    },
   };
 
   if (status === 'Success' || status === 'Failure') {
-    embed.fields.push({ name: 'IP', value: ip, inline: true });
     embed.fields.push({ name: 'Method', value: method, inline: true });
     embed.color = status === 'Success' ? SUCCESS_COLOR : FAILURE_COLOR;
   } else if (status === 'Disconnected') {
-    embed.fields.push({ name: 'IP', value: ip, inline: true });
     embed.color = DISCONNECTED_COLOR;
   }
-
-  embed.footer = {
-    text: FOOTER_TEXT,
-    icon_url: FOOTER_ICON_URL,
-  };
 
   try {
     await axios.post(WEBHOOK_URL, { embeds: [embed] });
