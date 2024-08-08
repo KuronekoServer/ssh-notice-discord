@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const LOG_FILE = '/var/log/auth.log'; // SSHのログファイル
 const WEBHOOK_URL = process.env.WEBHOOK_URL; // Discord Webhook URL
+const IPINFO_TOKEN = process.env.IPINFO_TOKEN;
 const HOSTNAME = os.hostname(); // サーバーのホスト名
 const SUCCESS_COLOR = 0x00ff00; // 成功時の埋め込みメッセージの色（緑）
 const FAILURE_COLOR = 0xff0000; // 失敗時の埋め込みメッセージの色（赤）
@@ -56,7 +57,7 @@ const getReverseDNS = (ip) => {
 
 const getISP = async (ip) => {
   try {
-    const response = await axios.get(`https://ipinfo.io/${ip}/json`);
+    const response = await axios.get(`https://ipinfo.io/${ip}/json?${IPINFO_TOKEN}`);
     return response.data.org || 'N/A';
   } catch (error) {
     console.error('Error fetching ISP information:', error);
