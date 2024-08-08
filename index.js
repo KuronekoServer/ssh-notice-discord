@@ -57,7 +57,7 @@ const getReverseDNS = (ip) => {
 
 const getISP = async (ip) => {
   try {
-    const response = await axios.get(`https://ipinfo.io/${ip}/json?${IPINFO_TOKEN}`);
+    const response = await axios.get(`https://ipinfo.io/${ip}/json?token=${IPINFO_TOKEN}`);
     return response.data.org || 'N/A';
   } catch (error) {
     console.error('Error fetching ISP information:', error);
